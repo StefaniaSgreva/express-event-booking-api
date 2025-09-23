@@ -1,0 +1,33 @@
+{
+  "name": "express-event-booking-api",
+  "version": "1.0.0",
+  "description": "This repository contains only the API layer for managing events and bookings.",
+  "keywords": [
+    "node",
+    "express",
+    "api"
+  ],
+  "homepage": "https://github.com/StefaniaSgreva/express-event-booking-api#readme",
+  "bugs": {
+    "url": "https://github.com/StefaniaSgreva/express-event-booking-api/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StefaniaSgreva/express-event-booking-api.git"
+  },
+  "license": "ISC",
+  "author": "Stefania Sgreva",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0"
+  }
+}
