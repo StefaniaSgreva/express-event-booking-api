@@ -6,9 +6,15 @@ const app = express();
 // Importo e Avvio libreria dotenv su una sola riga 
 require('dotenv').config();
 
+const eventsRouter = require('./routers/eventsRouter');
+app.use(express.json()); // per gestire body JSON
+
 // =========================
 //    DEFINIZIONE DELLE ROTTE
 // =========================
+
+// Rotte degli eventi
+app.use('/events', eventsRouter);
 
 
 // =======================
