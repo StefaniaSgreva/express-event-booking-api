@@ -4,9 +4,13 @@
 
 const Event = require('../models/event');
 
+// ES6 Modules
+// import Event from '../models/event.js';
+
 // =======================
 //    FUNZIONI
 // =======================
+
 // Controller che restituisce la lista di tutti gli eventi
 function index(req, res){
     // Prendi filtri dalla query string
