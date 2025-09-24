@@ -14,15 +14,17 @@ const router = express.Router();
 import eventsController from '../controllers/eventsController.js';*/
 
 // =========================
-//    DEFINIZIONE DELLE ROTTE
+//    DEFINIZIONE ROTTE
 // =========================
 
 // elencare gli eventi
 router.get("/", eventsController.index); 
+// visualizza un singolo evento
+router.get("/:id", eventsController.show);
 // creare un nuovo evento
 router.post("/", eventsController.store);
 // aggiornare un evento specifico identificato da event
-router.put("/:event", eventsController.update);
+router.put('/:id', eventsController.update);
 
 
 // =======================

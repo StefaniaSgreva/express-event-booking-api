@@ -61,6 +61,36 @@ class Event {
     // Scrive sul file JSON
     fs.writeFileSync(this.dataFilePath, dataString);
   }
+
+  /**
+   * Ritorna un singolo evento tramite id, o null se non trovato
+   * @param {string|number} id 
+   * @returns {Event|null}
+   */
+  static findById(id) {
+    const events = this.readAll();
+    return events.find(event => event.id == id) || null;
+  }
+
+  /**
+   * Ritorna tutti gli eventi, permettendo filtri tramite oggetto query
+   * @param {Object} filters chiavi-valori per filtrare (opzionale)
+   * @returns {Event[]}
+   */
+  static findAll(filters = {}) {
+    let events = this.readAll();
+
+    // Applica filtri se presenti sulla proprietà corrispondente
+    for (const [key, value] of Object.entries(filters)) {
+      events = events.filter(event => {
+        // Confronto stringa semplice per ora
+        if (!event.hasOwnProperty(key)) return false;
+        return String(event[key]).toLowerCase().includes(String(value).toLowerCase());
+      });
+    }
+
+    return events;
+  }
 }
 
 // =======================
