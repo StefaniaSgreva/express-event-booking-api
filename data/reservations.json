@@ -1,0 +1,37 @@
+[
+  {
+    "id": "r1",
+    "firstName": "Alice",
+    "lastName": "Smith",
+    "email": "alice.smith@example.com",
+    "eventId": "1"
+  },
+  {
+    "id": "r2",
+    "firstName": "Bob",
+    "lastName": "Johnson",
+    "email": "bob.johnson@example.com",
+    "eventId": "1"
+  },
+  {
+    "id": "r3",
+    "firstName": "Carol",
+    "lastName": "Williams",
+    "email": "carol.williams@example.com",
+    "eventId": "2"
+  },
+  {
+    "id": "r4",
+    "firstName": "David",
+    "lastName": "Brown",
+    "email": "david.brown@example.com",
+    "eventId": "3"
+  },
+  {
+    "id": "r5",
+    "firstName": "Eve",
+    "lastName": "Davis",
+    "email": "eve.davis@example.com",
+    "eventId": "5"
+  }
+]
