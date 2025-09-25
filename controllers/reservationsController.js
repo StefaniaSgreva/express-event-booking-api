@@ -2,6 +2,7 @@
 //     IMPORTAZIONI
 // =======================
 const Reservation = require('../models/reservation');
+const { NotFoundError, ValidationError, ConflictError } = require('../utils/errors');
 
 // ES6 Modules
 // import Reservation from '../models/reservation.js';
@@ -15,19 +16,20 @@ const Reservation = require('../models/reservation');
  * @param {Request} req 
  * @param {Response} res 
  */
-function index(req, res) {
-  const eventId = req.params.event;
-  if (!eventId) {
-    return res.status(400).json({ error: 'ID evento richiesto' });
+function index(req, res, next) {
+  try {
+    const eventId = req.params.event;
+    if (!eventId) {
+      throw new ValidationError('ID evento richiesto');
+    }
+
+    const allReservations = Reservation.readAll();
+    const filtered = allReservations.filter(r => r.eventId === eventId);
+    res.json(filtered);
+
+  } catch (err) {
+    next(err);
   }
-
-  // Leggi tutte le prenotazioni
-  const allReservations = Reservation.readAll();
-
-  // Filtra per eventId
-  const filtered = allReservations.filter(r => r.eventId === eventId);
-
-  res.json(filtered);
 }
 
 /**
@@ -35,29 +37,24 @@ function index(req, res) {
  * @param {Request} req 
  * @param {Response} res 
  */
-function store(req, res) {
+function store(req, res, next) {
   try {
     const eventId = req.params.event;
     if (!eventId) {
-      return res.status(400).json({ error: 'ID evento richiesto' });
+      throw new ValidationError('ID evento richiesto');
     }
 
-    // Prendi dati dal body e aggiungi eventId dal params
     const { id, firstName, lastName, email } = req.body;
-
-    // Validazione preliminare semplice
     if (!id || !firstName || !lastName || !email) {
-      return res.status(400).json({ error: 'Tutti i campi id, firstName, lastName e email sono obbligatori' });
+      throw new ValidationError('Tutti i campi id, firstName, lastName e email sono obbligatori');
     }
 
     const reservations = Reservation.readAll();
 
-    // Verifica id prenotazione duplicato
     if (reservations.find(r => r.id === id)) {
-      return res.status(409).json({ error: 'Prenotazione con questo ID esiste già' });
+      throw new ConflictError('Prenotazione con questo ID esiste già');
     }
 
-    // Crea nuova istanza con validazione automatica tramite setter
     const newReservation = new Reservation({
       id,
       firstName,
@@ -70,8 +67,9 @@ function store(req, res) {
     Reservation.saveAll(reservations);
 
     res.status(201).json(newReservation);
+
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    next(err);
   }
 }
 
@@ -80,29 +78,30 @@ function store(req, res) {
  * @param {Request} req 
  * @param {Response} res 
  */
-function destroy(req, res) {
-  const eventId = req.params.event;
-  const reservationId = req.params.reservation;
+function destroy(req, res, next) {
+  try {
+    const eventId = req.params.event;
+    const reservationId = req.params.reservation;
 
-  if (!eventId || !reservationId) {
-    return res.status(400).json({ error: 'ID evento e prenotazione richiesti' });
+    if (!eventId || !reservationId) {
+      throw new ValidationError('ID evento e prenotazione richiesti');
+    }
+
+    const reservations = Reservation.readAll();
+    const index = reservations.findIndex(r => r.id === reservationId && r.eventId === eventId);
+
+    if (index === -1) {
+      throw new NotFoundError('Prenotazione non trovata per questo evento');
+    }
+
+    reservations.splice(index, 1);
+    Reservation.saveAll(reservations);
+
+    res.status(204).send();
+
+  } catch (err) {
+    next(err);
   }
-
-  const reservations = Reservation.readAll();
-
-  const index = reservations.findIndex(r => r.id === reservationId && r.eventId === eventId);
-
-  if (index === -1) {
-    return res.status(404).json({ error: 'Prenotazione non trovata per questo evento' });
-  }
-
-  // Rimuovi prenotazione dall'array
-  reservations.splice(index, 1);
-
-  // Salva file aggiornato
-  Reservation.saveAll(reservations);
-
-  res.status(204).send(); // No content
 }
 
 // =======================

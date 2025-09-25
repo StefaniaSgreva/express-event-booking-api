@@ -3,6 +3,7 @@
 // =======================
 
 const Event = require('../models/event');
+const { NotFoundError, ValidationError, ConflictError } = require('../utils/errors');
 
 // ES6 Modules
 // import Event from '../models/event.js';
@@ -17,15 +18,14 @@ const Event = require('../models/event');
  * @param {Request} req 
  * @param {Response} res 
  */
-function index(req, res){
-    // Prendi filtri dalla query string
+function index(req, res, next) {
+  try {
     const filters = req.query;
-
-    // Recupera eventi filtrati o tutti se nessun filtro
     const events = Event.findAll(filters);
-
-    // Rispondi con la lista eventi
     res.json(events);
+  } catch (err) {
+    next(err);
+  }
 }
 
 /**
@@ -34,15 +34,17 @@ function index(req, res){
  * @param {Request} req 
  * @param {Response} res 
  */
-function show(req, res){
-    const id = req.params.id;
-
-    const event = Event.findById(id);
+function show(req, res, next) {
+  try {
+    const event = Event.findById(req.params.id);
     if (!event) {
-        return res.status(404).json({ error: 'Evento non trovato' });
+    // return res.status(404).json({ error: 'Evento non trovato' });
+      throw new NotFoundError('Evento non trovato');
     }
-
     res.json(event);
+  } catch (err) {
+    next(err);
+  }
 }
 
 /**
@@ -52,13 +54,14 @@ function show(req, res){
  * @param {Request} req 
  * @param {Response} res 
  */
-function store(req, res) {
+function store(req, res, next) {
   try {
     const { id, title, description, date, maxSeats } = req.body;
 
     // Controllo preliminare su campi obbligatori
     if (!id || !title || !date || !maxSeats) {
-      return res.status(400).json({ error: 'id, title, date, and maxSeats are required' });
+    //   return res.status(400).json({ error: 'id, title, date, and maxSeats are required' });
+        throw new ValidationError('Tutti i campi sono obbligatori!');
     }
 
     // Legge tutti gli eventi esistenti
@@ -66,7 +69,8 @@ function store(req, res) {
 
     // Controllo id duplicato
     if (events.find(event => event.id == id)) {
-      return res.status(409).json({ error: 'Un evento con questo id esiste già' });
+    //   return res.status(409).json({ error: 'Un evento con questo id esiste già' });
+        throw new ConflictError('Un evento con questo id esiste già');
     }
 
     // Crea nuova istanza evento, con validazione automatica
@@ -83,7 +87,8 @@ function store(req, res) {
 
   } catch (err) {
     // Gestione errori di validazione sollevati dai setter
-    res.status(400).json({ error: err.message });
+    // res.status(400).json({ error: err.message });
+    next(err);
   }
 }
 
@@ -94,7 +99,7 @@ function store(req, res) {
  * @param {Request} req 
  * @param {Response} res 
  */
-function update(req, res) {
+function update(req, res, next) {
   const id = req.params.id;
   try {
     // Legge eventi esistenti
@@ -103,7 +108,8 @@ function update(req, res) {
     // Trova indice evento da aggiornare
     const index = events.findIndex(event => event.id == id);
     if (index === -1) {
-      return res.status(404).json({ error: 'Evento non trovato' });
+    //   return res.status(404).json({ error: 'Evento non trovato' });
+        throw new NotFoundError('Evento non trovato');
     }
 
     // Aggiorna proprietà presenti nel body (setter esegue validazione)
@@ -120,7 +126,8 @@ function update(req, res) {
 
   } catch (err) {
     // Errore di validazione
-    res.status(400).json({ error: err.message });
+    // res.status(400).json({ error: err.message });
+    next(err);
   }
 }
 
