@@ -3,10 +3,12 @@
 // =======================
 const fs = require('fs');
 const path = require('path');
+const Reservation = require('./reservation'); // Importa il model delle prenotazioni
 
 /* Alternativa ES6 Modules (per usarla, aggiungi "type": "module" in package.json):
 import fs from 'fs';
 import path from 'path';
+import Reservation from './reservation';
 */
 
 // =======================
@@ -91,6 +93,18 @@ class Event {
 
     return events;
   }
+
+  /**
+   * Recupera tutte le prenotazioni associate all'id di questo evento.
+   * @returns {Reservation[]}
+   */
+  getReservations() {
+    // Leggi tutte le prenotazioni
+    const allReservations = Reservation.readAll();
+    // Filtra solo quelle relative a questo evento
+    return allReservations.filter(reservation => reservation.eventId == this.id);
+  }
+
 }
 
 // =======================
