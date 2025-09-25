@@ -7,6 +7,7 @@ const { NotFoundError, ValidationError, ConflictError } = require('../utils/erro
 
 // ES6 Modules
 // import Event from '../models/event.js';
+// import { NotFoundError, ValidationError, ConflictError } from '../utils/errors.js';
 
 // =======================
 //     FUNZIONI CONTROLLER

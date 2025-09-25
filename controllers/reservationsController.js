@@ -8,6 +8,7 @@ const { NotFoundError, ValidationError, ConflictError } = require('../utils/erro
 // ES6 Modules
 // import Reservation from '../models/reservation.js';
 // import Event from '../models/event.js';
+// import { NotFoundError, ValidationError, ConflictError } from '../utils/errors.js';
 
 // =======================
 //     FUNZIONI
@@ -43,6 +44,7 @@ function index(req, res, next) {
 
 /**
  * Crea una nuova prenotazione per un evento specifico
+ * Verifica che l'evento esista, non sia già passato e che ci siano posti disponibili
  * @param {Request} req 
  * @param {Response} res 
  */
@@ -50,32 +52,42 @@ function store(req, res, next) {
   try {
     const eventId = req.params.event;
 
-    // Recupera l'evento per controllare la data
+    // Recupera evento tramite id
     const event = Event.findById(eventId);
     if (!event) {
       throw new NotFoundError('Evento non trovato');
     }
 
-    // Verifica se l'evento è già passato (data evento < data odierna)
+    // Controlla se evento è già passato
     if (new Date(event.date) < new Date()) {
       throw new ValidationError('Non è possibile aggiungere prenotazioni a un evento già passato');
     }
 
-    const { id, firstName, lastName, email } = req.body;
+    // Legge tutte le prenotazioni 
+    const allReservations = Reservation.readAll();
 
-    // Controlla che tutti i campi obbligatori siano presenti
+    // Conta prenotazioni attive per questo evento
+    const countReservations = allReservations.filter(r => r.eventId === eventId).length;
+
+    // Verifica disponibilità posti
+    if (countReservations >= event.maxSeats) {
+      throw new ValidationError('Non ci sono posti disponibili per questo evento');
+    }
+
+    // Estrae dati dal body 
+    const { id, firstName, lastName, email } = req.body;
+    
+    // Controlla campi obbligatori
     if (!id || !firstName || !lastName || !email) {
       throw new ValidationError('Tutti i campi id, firstName, lastName e email sono obbligatori');
     }
-
-    const reservations = Reservation.readAll();
-
-    // Controlla duplicato id prenotazione
-    if (reservations.find(r => r.id === id)) {
+    
+    // Controlla che id prenotazione non esista già
+    if (allReservations.find(r => r.id === id)) {
       throw new ConflictError('Prenotazione con questo ID esiste già');
     }
 
-    // Crea nuova istanza prenotazione
+    // Crea nuova prenotazione
     const newReservation = new Reservation({
       id,
       firstName,
@@ -84,13 +96,11 @@ function store(req, res, next) {
       eventId,
     });
 
-    // Aggiunge prenotazione all'elenco
-    reservations.push(newReservation);
+    // Aggiunge prenotazione all'elenco e salva
+    allReservations.push(newReservation);
+    Reservation.saveAll(allReservations);
 
-    // Salva le prenotazioni aggiornate su file
-    Reservation.saveAll(reservations);
-
-    // Risponde con la nuova prenotazione e codice 201 Created
+    // Risposta con codice 201 e dati prenotazione
     res.status(201).json(newReservation);
 
   } catch (err) {
