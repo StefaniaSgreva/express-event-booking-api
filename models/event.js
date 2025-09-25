@@ -11,6 +11,7 @@ import path from 'path';
 import Reservation from './reservation';
 */
 
+
 // =======================
 //    CLASSE EVENT
 //    METODI STATICI
@@ -18,7 +19,7 @@ import Reservation from './reservation';
 class Event {
   /**
    * Costruttore che crea un'istanza di Event con proprietà specificate
-   * @param {Object} param0 Oggetto con proprietà evento
+   * @param {Object} param0 - Oggetto con le proprietà evento
    */
   constructor({ id, title, description, date, maxSeats }) {
     this.id = id;
@@ -28,45 +29,107 @@ class Event {
     this.maxSeats = maxSeats;
   }
 
+  // getter e setter con validazione e messaggi in italiano
+
   /**
-   * Percorso statico del file JSON dove sono salvati gli eventi
+   * Imposta id evento; deve essere stringa non vuota
+   */
+  set id(value) {
+    if (!value || typeof value !== 'string') {
+      throw new Error('ID evento mancante o non valido');
+    }
+    this._id = value;
+  }
+  get id() {
+    return this._id;
+  }
+
+  /**
+   * Imposta titolo evento; deve essere stringa non vuota
+   */
+  set title(value) {
+    if (!value || typeof value !== 'string') {
+      throw new Error('Titolo evento mancante o non valido');
+    }
+    this._title = value;
+  }
+  get title() {
+    return this._title;
+  }
+
+  /**
+   * Imposta descrizione evento; campo opzionale ma se presente deve essere stringa
+   */
+  set description(value) {
+    if (value !== undefined && typeof value !== 'string') {
+      throw new Error('Descrizione evento non valida');
+    }
+    this._description = value;
+  }
+  get description() {
+    return this._description;
+  }
+
+  /**
+   * Imposta data evento; deve essere data valida ISO
+   */
+  set date(value) {
+    if (!value || isNaN(Date.parse(value))) {
+      throw new Error('Data evento mancante o non valida');
+    }
+    this._date = value;
+  }
+  get date() {
+    return this._date;
+  }
+
+  /**
+   * Imposta numero massimo posti; deve essere numero > 0
+   */
+  set maxSeats(value) {
+    if (value === undefined || isNaN(value) || Number(value) < 1) {
+      throw new Error('Numero massimo posti mancante o non valido');
+    }
+    this._maxSeats = Number(value);
+  }
+  get maxSeats() {
+    return this._maxSeats;
+  }
+
+  /**
+   * Restituisce il percorso file JSON dove sono salvati gli eventi
    */
   static get dataFilePath() {
     return path.join(__dirname, '..', 'data', 'events.json');
   }
 
   /**
-   * Metodo statico che legge tutti gli eventi dal file JSON
-   * Restituisce un array di istanze Event
+   * Legge e restituisce tutti gli eventi salvati sul file JSON
+   * @returns {Event[]} Array di istanze Event
    */
   static readAll() {
     try {
-      // Legge dati grezzi da file
       const data = fs.readFileSync(this.dataFilePath, 'utf-8');
-
-      // Parsing JSON e creazione array di Event
       const parsed = JSON.parse(data);
       return parsed.map(eventData => new Event(eventData));
     } catch (error) {
-      // Se errore o file non esiste, ritorna array vuoto
+      // Ritorna array vuoto se file inesistente o errore di lettura
       return [];
     }
   }
 
   /**
-   * Metodo statico che salva un array di eventi su file JSON
-   * @param {Array<Event>} events Array di istanze Event da salvare
+   * Salva un array di eventi sul file JSON
+   * @param {Event[]} events Array di istanze Event da salvare
    */
   static saveAll(events) {
-    // Serializza in JSON con indentazione
     const dataString = JSON.stringify(events, null, 2);
-    // Scrive sul file JSON
     fs.writeFileSync(this.dataFilePath, dataString);
   }
 
   /**
-   * Ritorna un singolo evento tramite id, o null se non trovato
-   * @param {string|number} id 
+   * Cerca un evento per id; restituisce l’istanza o null se non trovato
+   * @param {string|number} id - id evento da cercare
    * @returns {Event|null}
    */
   static findById(id) {
@@ -75,17 +138,15 @@ class Event {
   }
 
   /**
-   * Ritorna tutti gli eventi, permettendo filtri tramite oggetto query
-   * @param {Object} filters chiavi-valori per filtrare (opzionale)
-   * @returns {Event[]}
+   * Recupera tutti gli eventi con filtri opzionali su proprietà
+   * @param {Object} filters Chiavi-valori per filtrare gli eventi
+   * @returns {Event[]} Array filtrato di Event
    */
   static findAll(filters = {}) {
     let events = this.readAll();
 
-    // Applica filtri se presenti sulla proprietà corrispondente
     for (const [key, value] of Object.entries(filters)) {
       events = events.filter(event => {
-        // Confronto stringa semplice per ora
         if (!event.hasOwnProperty(key)) return false;
         return String(event[key]).toLowerCase().includes(String(value).toLowerCase());
       });
@@ -95,16 +156,13 @@ class Event {
   }
 
   /**
-   * Recupera tutte le prenotazioni associate all'id di questo evento.
-   * @returns {Reservation[]}
+   * Recupera tutte le prenotazioni associate a questo evento tramite la proprietà id
+   * @returns {Reservation[]} Array di prenotazioni collegate a questo evento
    */
   getReservations() {
-    // Leggi tutte le prenotazioni
     const allReservations = Reservation.readAll();
-    // Filtra solo quelle relative a questo evento
     return allReservations.filter(reservation => reservation.eventId == this.id);
   }
-
 }
 
 // =======================
